@@ -1,0 +1,24 @@
+Package: FAIR
+Type: Package
+Title: A Package for FAIR Forecast
+Version: 0.1.0
+Description: The main functionality of this package is to implement the FAIR method to any panel data of store-category-level sales time series of a retail. It utilizes orthogonalization, regularization via Elastic net, and extrapolation to account for seasonality, focal- and cross-category marketing activity as well as random disturbances to base sales. It can handle large dimensionality and deal with regularization induced confounding.
+Authors@R: c(
+    person("Özden", "Gür Ali", email = "OALI@ku.edu.tr", role = "aut"),
+    person("Ragip", "Gürlek", email = "rgurlek@yahoo.com.tr", role = c("aut", "cre")))
+Maintainer: Ragip Gürlek <rgurlek@yahoo.com.tr>
+License: GPL-2
+Encoding: UTF-8
+LazyData: true
+Imports: 
+    dplyr,
+    forecast,
+    glmnet,
+    plotly,
+    plyr,
+    tidyr
+RoxygenNote: 6.1.1
+Suggests: 
+    knitr,
+    rmarkdown
+VignetteBuilder: knitr

@@ -1,0 +1,161 @@
+---
+title: "FAIR Forecasting Vignette"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{FAIR-vignette}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r include=F}
+knitr::opts_chunk$set(
+  message = FALSE,
+  collapse = TRUE,
+  comment = "#>",
+  fig.width=6,
+  fig.height=4
+)
+```
+
+FAIR is a forecasting tool developed to support the decision making in a retail environment. It provides multi-step-ahead sales forecasts at the category-store level which are based on an interpretable and transparent model. These aspects make it an objective tool with which different promotional strategies (scenarios) can be compared and insights can be generated. Additionally, FAIR package provides plotting functions that generate figures showing the relative strength of the interactions between categories and important promotional variables.
+
+The main function of the package, `FAIR_train`, fits a FAIR model to the data as detailed by Gür Ali and Gürlek (2019). The model is fitted in three stages. First, FAIR orthogonalize the sales and marketing data with respect to seasonality by fitting category-store-specific linear models. This stage helps FAIR to guard against *regularization induced bias* (Hahn et al., 2018). Next, the deseasonalized sales is explained by the deseasonalized marketing with Elastic net models (Zou & Hastie, 2005). This stage employs regularization and pools data to the category level^[The stores are pooled.] to be able to deal with high dimensionality. It can account for the interaction between categories within a store. The last stage extrapolates the residuals to incorporate the random disturbances that cannot be explained with the seasonality or marketing activity.
+
+## Sample Data
+
+FAIR package accompanied by a simulated sample dataset to showcase its abilities. The data contains the weekly category-store-level sales of a retail chain. It provides the promotional activity as well as the seasonality and calendar variables. The following is the list of variables.
+
+* `week` Identifier for the week.  
+* `store_n` Identifier for the store.  
+* `category` Product category.  
+* `dollar_sales` Total sales in dollars.  
+* `price` Average prices of SKUs within the `category`.  
+* `display` Average of a binary variable that indicates whether the SKU was displayed.  
+* `discount` Average percentage discount in the `category`.  
+* `dist_x` Sales volume percentage of SKUs in the `category` which are discounted less than x% but more than the lower bucket. `dist_5` excludes undiscounted SKUs. Captures the distribution of `discount` within the `category`.
+* `ad` Average of a binary variable that indicates whether the SKU was advertised.  
+* `thanksgiving`, `christmas` and `other_holidays` Whether `week` covers the holiday.
+* `season` Season of the year.
+* `first` and `fifteenth` Whether the week covers the first or fifteenth day of the month, respectively.
+* `month` Month of the year.
+
+## Model Fitting
+
+FAIR package trains the forecasting model with its core function, `FAIR_train`. It requires the training data, the names of the different components of the data as strings, and the options. Type `?FAIR_train` to see the details of the arguments.
+
+```{r warning=FALSE}
+library(FAIR)
+train_data <- sample_data[sample_data$week < 1401, ]
+my_model <- FAIR_train(train_data = train_data,
+                       store = "store_n",
+                       category = "category",
+                       time_id = "week",
+                       seasonality = c("thanksgiving", "christmas", 
+                                       "other_holidays", "season", "first",
+                                       "fifteenth", "month"),
+                       marketing = c("price", "display", "discount", "dist_5",
+                                     "dist_10", "dist_15", "dist_20", "dist_30",
+                                     "dist_40", "dist_50", "dist_100", "ad"),
+                       cc_marketing = "discount",
+                       sales = "dollar_sales",
+                       alpha = c(0.1, 0.5, 0.9),
+                       horizon = 13)
+names(my_model)
+```
+
+It returns an R list with four elements:
+
+* `forecasts` A `data.frame` of the final forecast and its components for each `store`-`category`-`time_id` combination in train_data.
+* `models` The model for each stage and a data.frame for in-sample bias.  
+* `pars` Parameters used for the training.  
+* `lag_data` The `data.frame` of the last time periods, used by `FAIR_predict`.
+
+Below is the `head` of `forecasts` data.frame. `Seasonal_and_trend_pattern` column shows the forecasted sales as a result of the "typical" marketing activity for the given seasonality. `Marketing_deviation_multiplier` is the multiplier that modifies the forecast by accounting the marketing scenario deviation from the established pattern. Similarly, `Disturbance_multiplier` is the multiplier that incorporates the random disturbances which cannot be captured by the seasonality or marketing variables. `Forecast` column shows the final prediction that calculated by multiplying the all^[It also subtracts 1 from the multiplication because of the way FAIR is formulated.].
+
+```{r}
+head(my_model$forecasts)
+```
+
+
+The second element in the output of `FAIR_train` is a list of the models. The first in the list is store-category-specific Stage 1 models for each marketing variable and sales. Here, for example, is the OLS model that explains the seasonality in the discounts for the beer category in Store 1. 
+
+```{r}
+my_model$models$Stage1$`1.beer`$discount
+```
+
+The next in the list is category-specific Stage 2 Elastic net models. One can obtain the Elastic net coefficients for the beer category with the following code. Note that we have lags of the marketing variables and discount of the other categories as we provided the argument `cc_marketing = "discount"`. Potentially, `cc_marketing` argument can be the same as `marketing`.
+
+```{r}
+coef(my_model$models$Stage2$beer)
+```
+
+Similarly, the `Stage3` object in the `models` list is the output obtained from `forecast::stlm()` function in the 3^rd^ Stage of FAIR.
+
+## Prediction <a id="prediction"></a>
+
+Having fitted our FAIR model, we can predict the sales for the following weeks. To do that, we use `FAIR_predict` function. It requires the object we obtained from `FAIR_train` and the new data. The new data should have the store and category identifiers, time id, seasonality and calendar variables, and marketing activity columns. The names should match the ones in `train_data` argument from the training. `time_id` column should contain weeks after the last week of `train_data` and cannot be out of the horizon specified for `FAIR_train`.
+
+```{r}
+test_data <- sample_data[sample_data$week >= 1401,
+                         c("store_n", "category", "week",
+                           c("thanksgiving", "christmas", "other_holidays",
+                             "season", "first", "fifteenth", "month"),
+                           c("price", "display", "discount", "dist_5",
+                             "dist_10", "dist_15", "dist_20", "dist_30",
+                             "dist_40", "dist_50", "dist_100", "ad"))]
+predictions <- FAIR_predict(my_model, test_data)
+head(predictions)
+```
+
+Output of `FAIR_predict` function is a data.frame with forecasts which has the same structure as `forecasts` object in the output list of `FAIR_train`.
+
+## Insight Generation
+
+Beyond being a forecasting tool, FAIR provides tools to understand the mechanism that governs the sales. First, the user can input a set of scenarios to `FAIR_predict` function to guide a decision. FAIR uses modern machine learning techniques to make sure coefficient estimates are not biased. Therefore, different marketing strategies can be compared on the basis of the sales predicted by FAIR. Additionally, the user can gain insights with the plotting functions `variable_importance` and `cross_category`.
+
+`variable_importance` plots the average absolute coefficients of the marketing variables. The default plot shows the top 10 variables and includes only the variables which belong to the focal category i.e. the cross-category variables are excluded. The user can choose the categories over which the averages are calculated. The all categories are included by default.
+
+```{r}
+variable_importance(object = my_model, n_vars = 10, categories = NULL,
+                                only_own = T)
+```
+
+`cross_category` plots the matrix of the interaction strength. It averages the absolute value of the cross-category marketing variables of the x-axis category in the model for the y-axis category.
+
+```{r}
+cross_category(my_model)
+```
+
+
+```{r eval=FALSE, include=FALSE}
+### This part is not included in the vignette. Because, the current version of FAIR does not have a variable to distinguish the scenarios with the same store-category-week combination. Also, with the sample data we have, the other categories also should be provided to the predict function because of cc_marketing. Here is the paragraph I wrote for this example:
+### The user can input a set of scenarios to `FAIR_predict` function to guide a decision. For example, the below code compares the sales for a base scenario, an agressive-ad scenario, and a scenario where the same agressive ad strategy is followed on a holiday.
+
+# The base scenario. We take a random observation from the test data.
+scenarios <- test_data[3757, ]
+scenarios
+
+# The agressive-ad scenario. We change the average ad in the category.
+scenarios[2, ] <- scenarios[1, ]
+scenarios[2, "ad"] <- 0.30
+
+# Agressive-ad-on-holiday scenario. We take an observation on a holiday for the same store-category and change its marketing variables to the those of scenario 2.
+scenarios[3, ] <- test_data[3766, ]
+marketing_variables = c("price", "display", "discount", "dist_5", "dist_10",
+                        "dist_15", "dist_20", "dist_30", "dist_40", "dist_50",
+                        "dist_100", "ad")
+scenarios[3, marketing_variables] <- scenarios[2, marketing_variables]
+
+FAIR_predict(my_model, scenarios)
+```
+
+
+## References
+
+Gür Ali, Ö. and Gürlek, R. (2019) Automatic Interpretable Retail Forecasting with Promotional Scenarios
+
+Hahn, P. R., Carvalho, C. M., Puelz, D., and He, J. (2018).
+Regularization and confounding in linear regression for treatment effect
+estimation. Bayesian Analysis, 13(1):163– 182.
+
+Zou, H. and Hastie, T. (2005), Regularization and variable selection via the elastic net. Journal of the Royal Statistical Society: Series B (Statistical Methodology), 67: 301-320.
