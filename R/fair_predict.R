@@ -2,7 +2,7 @@
 #'
 #'Predict sales for a new data.
 #'
-#'@param object A FAIR object obtained with \code{\link{FAIR_train}}.
+#'@param object A FAIRforecast object obtained with \code{\link{FAIR_train}}.
 #'@param new_data A dataframe object that contains observations with
 #'the following variables:
 #'store identifier (factor), category identifier (factor), time id (numeric),
@@ -13,7 +13,7 @@
 #'
 #'@details All components of the data is supplied in one data.frame and the
 #'  column names should correspond to the ones used to obtain \code{object}.
-#'@details \code{FAIR_predict} can forecast for time periods which are after the
+#'@details \code{FAIR_predict} can forecast for periods which are after the
 #'  last period of the training data and are in the forecasting horizon.
 #'
 #'@return A data.frame of the final forecast and its components for each
@@ -30,8 +30,9 @@
 #'  and subtracting 1. If more complex parts of the forecast (multipliers) are
 #'  set to NA, they are ignored.}
 #'
-#' @references Gür Ali, Ö. and Gürlek, R. (2019) Automatic Interpretable Retail
-#' Forecasting with Promotional Scenarios
+#' @references Gür Ali, Ö. and Gürlek, R. (2020) Automatic Interpretable Retail
+#' Forecasting (FAIR) with Promotional Scenarios. International Journal of
+#' Forecasting, forthcoming.
 #'
 #'@seealso \code{\link{FAIR_train}}
 #'

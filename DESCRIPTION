@@ -1,12 +1,13 @@
-Package: FAIR
+Package: FAIRforecast
 Type: Package
 Title: A Package for FAIR Forecast
 Version: 0.1.0
-Description: The main functionality of this package is to implement the FAIR method to any panel data of store-category-level sales time series of a retail. It utilizes orthogonalization, regularization via Elastic net, and extrapolation to account for seasonality, focal- and cross-category marketing activity as well as random disturbances to base sales. It can handle large dimensionality and deal with regularization induced confounding.
+Description: FAIR is a forecasting tool developed to support decision making in a retail environment. It provides multi-step-ahead sales forecasts at the category-store level, which are based on an interpretable and transparent model. These aspects make it an objective tool with which different promotional strategies (scenarios) can be compared and insights can be generated. Additionally, the FAIRforecast package provides plotting functions that generate figures showing the relative strength of the interactions between categories and important promotional variables. For more information, see vignette("FAIRforecast") and Gür Ali & Gürlek (2020).
 Authors@R: c(
     person("Özden", "Gür Ali", email = "OALI@ku.edu.tr", role = "aut"),
-    person("Ragip", "Gürlek", email = "rgurlek@yahoo.com.tr", role = c("aut", "cre")))
-Maintainer: Ragip Gürlek <rgurlek@yahoo.com.tr>
+    person("Ragip", "Gürlek", email = "rgurlek@emory.edu", role = c("aut", "cre")))
+Maintainer: Ragip Gürlek <rgurlek@emory.edu>
+URL: https://github.com/rgurlek/FAIRforecast
 License: GPL-2
 Encoding: UTF-8
 LazyData: true

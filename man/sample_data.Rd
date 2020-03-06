@@ -4,20 +4,34 @@
 \name{sample_data}
 \alias{sample_data}
 \title{A sample retail sales dataset}
-\format{A data frame with 53940 rows and 10 variables:
-\describe{
-\item{price}{price, in US dollars}
-\item{carat}{weight of the diamond, in carats}
-
-}
-Note that distributional variables do not add up to 1 because they exclude
-non-discounted SKUs.}
+\format{A data frame with 78163 rows and 23 variables:}
 \usage{
 sample_data
 }
 \description{
-A dataset containing the weekly category-store-level sales of a retail chain.
-It provides the promotional activity as well as the seasoanlity and calendar
+A simulated dataset containing weekly category-store-level sales of a retail chain.
+It provides the promotional activity as well as the seasonality and calendar
 variables.
+}
+\details{
+\describe{
+    \item{week}{Identifier for the week.}
+    \item{store_n}{Identifier for the store.}
+    \item{category}{Product category.}
+    \item{dollar_sales}{Total sales in dollars.}
+    \item{price}{Average prices of SKUs within the \code{category}.}
+    \item{display}{Average of a binary variable that indicates whether the SKU was displayed.}
+    \item{discount}{Average percentage discount in the \code{category}.}
+    \item{dist_x}{Sales volume percentage of SKUs in the \code{category} which are discounted
+    less than x\% but more than the lower bucket. \code{dist_5} excludes undiscounted SKUs. Captures the distribution of \code{discount} within the \code{category}.}
+    \item{ad}{Average of a binary variable that indicates whether the SKU was advertised.}
+    \item{thanksgiving}{Whether \code{week} covers the holiday.}
+    \item{season}{Season of the year.}
+    \item{first}{Whether the week covers the first or fifteenth day of the month, respectively.}
+    \item{month}{Month of the year.}
+  }
+
+Note that distributional variables do not add up to 1 because they exclude
+non-discounted SKUs.
 }
 \keyword{datasets}

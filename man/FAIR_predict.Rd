@@ -7,7 +7,7 @@
 FAIR_predict(object, new_data, parallel = F)
 }
 \arguments{
-\item{object}{A FAIR object obtained with \code{\link{FAIR_train}}.}
+\item{object}{A FAIRforecast object obtained with \code{\link{FAIR_train}}.}
 
 \item{new_data}{A dataframe object that contains observations with
 the following variables:
@@ -40,12 +40,13 @@ Predict sales for a new data.
 All components of the data is supplied in one data.frame and the
  column names should correspond to the ones used to obtain \code{object}.
 
-\code{FAIR_predict} can forecast for time periods which are after the
+\code{FAIR_predict} can forecast for periods which are after the
  last period of the training data and are in the forecasting horizon.
 }
 \references{
-Gür Ali, Ö. and Gürlek, R. (2019) Automatic Interpretable Retail
-Forecasting with Promotional Scenarios
+Gür Ali, Ö. and Gürlek, R. (2020) Automatic Interpretable Retail
+Forecasting (FAIR) with Promotional Scenarios. International Journal of
+Forecasting, forthcoming.
 }
 \seealso{
 \code{\link{FAIR_train}}

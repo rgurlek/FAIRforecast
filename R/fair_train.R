@@ -15,11 +15,11 @@
 #'@param seasonality a character vector. The names of the seasonality and
 #'  calendar columns.
 #'@param marketing a character vector. The names of the marketing columns.
-#'  The corresponding columns are expected to represent continues variables and
+#'  The corresponding columns are expected to represent continuous variables and
 #'  to be non-negative.
 #'@param cc_marketing a character vector. The names of the
 #'  cross-category marketing columns. Cross-category marketing variables are a
-#'  subset of the marketing variables that are assumed to have cross-series
+#'  subset of the marketing variables that are assumed to have a cross-series
 #'  impact. The default for this is \code{NULL}.
 #'@param sales a string. The name of the sales column. The corresponding column
 #'  is expected to be non-negative.
@@ -42,27 +42,28 @@
 #'@details All components of \code{train_data} is supplied in one
 #'  data.frame. The user specifies the names of the individual components with
 #'  the corresponding arguments.
-#'@details  The series do not have to be of the same size and they may have gaps
-#'  i.e. the input data may lack rows for some
-#'  \code{time_id}. The algorithm can work with missing values, however if the proportion
+#'@details  The series do not have to be of the same size and they may have gaps,
+#'  i.e., the input data may lack rows for some
+#'  \code{time_id}. The algorithm can work with missing values. However, if the proportion
 #'  of the missing values in a series exceeds a certain threshold the series is
 #'  ignored and the user is informed.
 #'
 #'@return The function outputs a list with the following objects:
 #'  \item{forecasts}{A data.frame of the final forecast and its components for each
 #'  \code{store}-\code{category}-\code{time_id} combination in \code{train_data}.
-#'  See value section of \code{\link{FAIR_predict}} for details.}
+#'  See the value section of \code{\link{FAIR_predict}} for details.}
 #'  \item{models}{the model for each stage and a data.frame for in-sample bias}
 #'  \item{pars}{parameters used for the training}
-#'  \item{lag_data}{data.frame of the last time periods, used by
+#'  \item{lag_data}{data.frame of the last periods, used by
 #'  \code{FAIR_predict}}
 #'
 #'@author Özden Gür Ali and Ragıp Gürlek
 #'
 #'Maintainer: Ragıp Gürlek \email{rgurlek@@yahoo.com.tr}
 #'
-#' @references Gür Ali, Ö. and Gürlek, R. (2019) Automatic Interpretable Retail
-#' Forecasting with Promotional Scenarios
+#' @references Gür Ali, Ö. and Gürlek, R. (2020) Automatic Interpretable Retail
+#' Forecasting (FAIR) with Promotional Scenarios. International Journal of
+#' Forecasting, forthcoming.
 #'
 #'@seealso \code{\link{FAIR_predict}}
 #'

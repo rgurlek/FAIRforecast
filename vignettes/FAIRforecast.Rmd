@@ -1,8 +1,8 @@
 ---
-title: "FAIR Forecasting Vignette"
-output: rmarkdown::html_vignette
+title: "FAIRforecast Vignette"
+output: html_document
 vignette: >
-  %\VignetteIndexEntry{FAIR-vignette}
+  %\VignetteIndexEntry{FAIRforecast-vignette}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
@@ -17,13 +17,13 @@ knitr::opts_chunk$set(
 )
 ```
 
-FAIR is a forecasting tool developed to support the decision making in a retail environment. It provides multi-step-ahead sales forecasts at the category-store level which are based on an interpretable and transparent model. These aspects make it an objective tool with which different promotional strategies (scenarios) can be compared and insights can be generated. Additionally, FAIR package provides plotting functions that generate figures showing the relative strength of the interactions between categories and important promotional variables.
+FAIR is a forecasting tool developed to support decision making in a retail environment. It provides multi-step-ahead sales forecasts at the category-store level, which are based on an interpretable and transparent model. These aspects make it an objective tool with which different promotional strategies (scenarios) can be compared and insights can be generated. Additionally, the FAIRforecast package provides plotting functions that generate figures showing the relative strength of the interactions between categories and important promotional variables.
 
-The main function of the package, `FAIR_train`, fits a FAIR model to the data as detailed by Gür Ali and Gürlek (2019). The model is fitted in three stages. First, FAIR orthogonalize the sales and marketing data with respect to seasonality by fitting category-store-specific linear models. This stage helps FAIR to guard against *regularization induced bias* (Hahn et al., 2018). Next, the deseasonalized sales is explained by the deseasonalized marketing with Elastic net models (Zou & Hastie, 2005). This stage employs regularization and pools data to the category level^[The stores are pooled.] to be able to deal with high dimensionality. It can account for the interaction between categories within a store. The last stage extrapolates the residuals to incorporate the random disturbances that cannot be explained with the seasonality or marketing activity.
+The main function of the package, `FAIR_train`, fits a FAIR model to the data as detailed by Gür Ali and Gürlek (2019). The model is fitted in three stages. First, FAIR orthogonalizes the sales and marketing data with respect to seasonality by fitting category-store-specific linear models. This stage helps FAIR to guard against *regularization induced bias* (Hahn et al., 2018). Next, the deseasonalized sales is explained by the deseasonalized marketing with Elastic net models (Zou & Hastie, 2005). This stage employs regularization and pools data to the category level^[The stores are pooled.] to be able to deal with high dimensionality. It can account for the interaction between categories within a store. The last stage extrapolates the residuals to incorporate the random disturbances that cannot be explained with the seasonality or marketing activity.
 
 ## Sample Data
 
-FAIR package accompanied by a simulated sample dataset to showcase its abilities. The data contains the weekly category-store-level sales of a retail chain. It provides the promotional activity as well as the seasonality and calendar variables. The following is the list of variables.
+The FAIRforecast package is accompanied by a simulated sample dataset to showcase its abilities. The data contains the weekly category-store-level sales of a retail chain. It provides the promotional activity variables as well as the seasonality and calendar variables. The following is the list of variables.
 
 * `week` Identifier for the week.  
 * `store_n` Identifier for the store.  
@@ -41,10 +41,10 @@ FAIR package accompanied by a simulated sample dataset to showcase its abilities
 
 ## Model Fitting
 
-FAIR package trains the forecasting model with its core function, `FAIR_train`. It requires the training data, the names of the different components of the data as strings, and the options. Type `?FAIR_train` to see the details of the arguments.
+The FAIRforecast package trains the forecasting model with its core function, `FAIR_train`. It requires the training data, the names of the different components of the data as strings, and the options. Type `?FAIR_train` to see the details of the arguments.
 
 ```{r warning=FALSE}
-library(FAIR)
+library(FAIRforecast)
 train_data <- sample_data[sample_data$week < 1401, ]
 my_model <- FAIR_train(train_data = train_data,
                        store = "store_n",
@@ -68,9 +68,9 @@ It returns an R list with four elements:
 * `forecasts` A `data.frame` of the final forecast and its components for each `store`-`category`-`time_id` combination in train_data.
 * `models` The model for each stage and a data.frame for in-sample bias.  
 * `pars` Parameters used for the training.  
-* `lag_data` The `data.frame` of the last time periods, used by `FAIR_predict`.
+* `lag_data` The `data.frame` of the last periods, used by `FAIR_predict`.
 
-Below is the `head` of `forecasts` data.frame. `Seasonal_and_trend_pattern` column shows the forecasted sales as a result of the "typical" marketing activity for the given seasonality. `Marketing_deviation_multiplier` is the multiplier that modifies the forecast by accounting the marketing scenario deviation from the established pattern. Similarly, `Disturbance_multiplier` is the multiplier that incorporates the random disturbances which cannot be captured by the seasonality or marketing variables. `Forecast` column shows the final prediction that calculated by multiplying the all^[It also subtracts 1 from the multiplication because of the way FAIR is formulated.].
+Below is the `head` of `forecasts` data.frame. `Seasonal_and_trend_pattern` column shows the forecasted sales as a result of the "typical" marketing activity for the given seasonality. `Marketing_deviation_multiplier` is the multiplier that modifies the forecast by accounting the marketing scenario deviation from the established pattern. Similarly, `Disturbance_multiplier` is the multiplier that incorporates the random disturbances which cannot be captured by the seasonality or marketing variables. `Forecast` column shows the final prediction calculated by multiplying the all^[It also subtracts 1 from the multiplication because of the way FAIR is formulated.].
 
 ```{r}
 head(my_model$forecasts)
@@ -113,7 +113,7 @@ Output of `FAIR_predict` function is a data.frame with forecasts which has the s
 
 Beyond being a forecasting tool, FAIR provides tools to understand the mechanism that governs the sales. First, the user can input a set of scenarios to `FAIR_predict` function to guide a decision. FAIR uses modern machine learning techniques to make sure coefficient estimates are not biased. Therefore, different marketing strategies can be compared on the basis of the sales predicted by FAIR. Additionally, the user can gain insights with the plotting functions `variable_importance` and `cross_category`.
 
-`variable_importance` plots the average absolute coefficients of the marketing variables. The default plot shows the top 10 variables and includes only the variables which belong to the focal category i.e. the cross-category variables are excluded. The user can choose the categories over which the averages are calculated. The all categories are included by default.
+`variable_importance` plots the average absolute coefficients of the marketing variables. The default plot shows the top 10 variables and includes only the variables which belong to the focal category, i.e., the cross-category variables are excluded. The user can choose the categories over which the averages are calculated. All the categories are included by default.
 
 ```{r}
 variable_importance(object = my_model, n_vars = 10, categories = NULL,

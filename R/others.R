@@ -1,25 +1,30 @@
-#' FAIR: A package for FAIR forecast
+#' FAIRforecast: A package for FAIR forecast
 #'
-#' The main functionality of this package is to implement the FAIR
-#' method proposed by Gür Ali and Gürlek (2019) to any panel data of
-#' store-category-level sales time series of a retail. It utilizes
-#' orthogonalization, regularization via Elastic net, and extrapolation
-#' to account for seasonality, focal- and cross-category marketing activity
-#' as well as random disturbances to base sales. It can handle large
-#' dimensionality and deal with regularization induced confounding.
+#' FAIR is a forecasting tool developed to support decision making in a retail
+#' environment. It provides multi-step-ahead sales forecasts at the category-store
+#' level, which are based on an interpretable and transparent model. These aspects
+#' make it an objective tool with which different promotional strategies
+#' (scenarios) can be compared and insights can be generated. Additionally, the FAIRforecast
+#' package provides plotting functions that generate figures showing the relative
+#' strength of the interactions between categories and important promotional
+#' variables. For more information, see \code{vignette("FAIRforecast")} and
+#' Gür Ali & Gürlek (2020).
 #'
-#' @details Package:  FAIR
+#' @details Package:  FAIRforecast
 #' @details Type:     Package
 #' @details Version:  0.1.0
-#' @details Release Date: 09-19-19
+#' @details Release Date: 03-15-20
 #' @details License:  GPL-2
 #'
 #'@author Özden Gür Ali and Ragıp Gürlek
 #'
-#'Maintainer: Ragıp Gürlek \email{rgurlek@@yahoo.com.tr}
+#'Maintainer: Ragıp Gürlek \email{rgurlek@@emory.edu}
 #'
-#' @references Gür Ali, Ö. and Gürlek, R. (2019) Automatic Interpretable Retail
-#' Forecasting with Promotional Scenarios
+#'\url{https://github.com/rgurlek/FAIRforecast}
+#'
+#' @references Gür Ali, Ö. and Gürlek, R. (2020) Automatic Interpretable Retail
+#' Forecasting (FAIR) with Promotional Scenarios. International Journal of
+#' Forecasting, forthcoming.
 #' @references Gür Ali, Ö. and Pınar, E. (2016). Multi-period-ahead forecasting
 #'   with residual extrapolation and information sharing - Utilizing a multitude
 #'   of retail series. International Journal of Forecasting, 32(2):502–517.
@@ -31,23 +36,36 @@
 #' Series B (Statistical Methodology), 67: 301-320.
 #'
 #' @docType package
-#' @name FAIR
+#' @name FAIRforecast
 NULL
 
 #' A sample retail sales dataset
 #'
-#' A dataset containing the weekly category-store-level sales of a retail chain.
-#' It provides the promotional activity as well as the seasoanlity and calendar
+#' A simulated dataset containing weekly category-store-level sales of a retail chain.
+#' It provides the promotional activity as well as the seasonality and calendar
 #' variables.
 #'
-#' @format A data frame with 53940 rows and 10 variables:
-#' \describe{
-#' \item{price}{price, in US dollars}
-#' \item{carat}{weight of the diamond, in carats}
+#' @details
+#'   \describe{
+#'     \item{week}{Identifier for the week.}
+#'     \item{store_n}{Identifier for the store.}
+#'     \item{category}{Product category.}
+#'     \item{dollar_sales}{Total sales in dollars.}
+#'     \item{price}{Average prices of SKUs within the \code{category}.}
+#'     \item{display}{Average of a binary variable that indicates whether the SKU was displayed.}
+#'     \item{discount}{Average percentage discount in the \code{category}.}
+#'     \item{dist_x}{Sales volume percentage of SKUs in the \code{category} which are discounted
+#'     less than x\% but more than the lower bucket. \code{dist_5} excludes undiscounted SKUs. Captures the distribution of \code{discount} within the \code{category}.}
+#'     \item{ad}{Average of a binary variable that indicates whether the SKU was advertised.}
+#'     \item{thanksgiving}{Whether \code{week} covers the holiday.}
+#'     \item{season}{Season of the year.}
+#'     \item{first}{Whether the week covers the first or fifteenth day of the month, respectively.}
+#'     \item{month}{Month of the year.}
+#'   }
+#' @details Note that distributional variables do not add up to 1 because they exclude
+#'non-discounted SKUs.
 #'
-#' }
-#' Note that distributional variables do not add up to 1 because they exclude
-#' non-discounted SKUs.
+#' @format A data frame with 78163 rows and 23 variables:
 "sample_data"
 
 extract <-
@@ -276,6 +294,18 @@ step3 <- function(x, time_id, frequency) {
   return(list(x, my_model))
 }
 
+#'Plot variable importance
+#'
+#'Plots the average absolute coefficients of the top marketing variables.
+#'
+#'@param object A FAIRforecast object obtained with \code{\link{FAIR_train}}.
+#'@param n_vars Number of top marketing variables to be included. The
+#'  default is 10.
+#'@param categories Character vector of categories over which the averages
+#'  are calculated. The default, \code{NULL}, includes the all.
+#'@param only_own If \code{TRUE}, only the focal variables are plotted.
+#'
+#'
 #'@export
 variable_importance <- function(object, n_vars = 10, categories = NULL,
                                 only_own = T){
@@ -309,6 +339,15 @@ variable_importance <- function(object, n_vars = 10, categories = NULL,
   return(p)
 }
 
+#'Plot the cross-category effect matrix
+#'
+#'Plots the matrix of the interaction strength. It averages the absolute value of the
+#'cross-category marketing variables of the x-axis category in the model for the y-axis
+#'category.
+#'
+#'@param object A FAIRforecast object obtained with \code{\link{FAIR_train}}.
+#'
+#'
 #'@export
 cross_category <- function(object){
   models <- object$models$Stage2
