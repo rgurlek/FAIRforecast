@@ -45,8 +45,7 @@ The FAIRforecast package trains the forecasting model with its core function, `F
 
 ```{r warning=FALSE}
 library(FAIRforecast)
-# sample_data function loads the dataset from Github.com and assigns it to data_ret
-sample_data()
+data_ret <- sample_data()
 train_data <- data_ret[data_ret$week < 1401, ]
 my_model <- FAIR_train(train_data = train_data,
                        store = "store_n",

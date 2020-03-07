@@ -41,8 +41,8 @@ NULL
 
 #' A sample retail sales dataset
 #'
-#' Loads a simulated dataset from Github.com and assigns it to \code{data_ret}. \code{data_ret} is
-#' a dataframe of weekly category-store-level sales of a retail chain. It provides the promotional
+#' Loads a simulated dataset from Github.com and returns it. The dataframe contains
+#' weekly category-store-level sales of a retail chain. It provides the promotional
 #' activity as well as the seasonality and calendar variables.
 #'
 #' @details
@@ -65,11 +65,11 @@ NULL
 #' @details Note that distributional variables do not add up to 1 because they exclude
 #'non-discounted SKUs.
 #'
-#' @format A data frame with 78163 rows and 23 variables.
+#' @return A data frame with 78163 rows and 23 variables.
 #'
 #'@export
 sample_data <- function(){
-  load(url("https://github.com/rgurlek/FAIRforecast/blob/master/sample_data/data.RData?raw=true"))
+  readRDS(url("https://github.com/rgurlek/FAIRforecast/blob/master/sample_data/data.RData?raw=true"))
 }
 
 extract <-

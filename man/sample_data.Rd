@@ -3,13 +3,15 @@
 \name{sample_data}
 \alias{sample_data}
 \title{A sample retail sales dataset}
-\format{A data frame with 78163 rows and 23 variables.}
 \usage{
 sample_data()
 }
+\value{
+A data frame with 78163 rows and 23 variables.
+}
 \description{
-Loads a simulated dataset from Github.com and assigns it to \code{data}. \code{data} is
-a dataframe of weekly category-store-level sales of a retail chain. It provides the promotional
+Loads a simulated dataset from Github.com and returns it. The dataframe contains
+weekly category-store-level sales of a retail chain. It provides the promotional
 activity as well as the seasonality and calendar variables.
 }
 \details{
