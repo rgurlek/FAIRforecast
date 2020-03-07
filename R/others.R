@@ -69,8 +69,7 @@ NULL
 #'
 #'@export
 sample_data <- function(){
-  library(repmis)
-  source_data("https://github.com/rgurlek/FAIRforecast/blob/master/sample_data/sample_data.RData?raw=true")
+  repmis::source_data("https://github.com/rgurlek/FAIRforecast/blob/master/sample_data/data.RData?raw=true")
 }
 
 extract <-

@@ -8,9 +8,9 @@
 sample_data()
 }
 \description{
-A simulated dataset containing weekly category-store-level sales of a retail chain.
-It provides the promotional activity as well as the seasonality and calendar
-variables.
+Loads a simulated dataset from Github.com and assigns it to \code{data}. \code{data} is
+a dataframe of weekly category-store-level sales of a retail chain. It provides the promotional
+activity as well as the seasonality and calendar variables.
 }
 \details{
 \describe{
