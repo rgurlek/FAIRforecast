@@ -41,7 +41,7 @@ NULL
 
 #' A sample retail sales dataset
 #'
-#' Loads a simulated dataset from Github.com and assigns it to \code{data}. \code{data} is
+#' Loads a simulated dataset from Github.com and assigns it to \code{data_ret}. \code{data_ret} is
 #' a dataframe of weekly category-store-level sales of a retail chain. It provides the promotional
 #' activity as well as the seasonality and calendar variables.
 #'
@@ -69,7 +69,7 @@ NULL
 #'
 #'@export
 sample_data <- function(){
-  repmis::source_data("https://github.com/rgurlek/FAIRforecast/blob/master/sample_data/data.RData?raw=true")
+  load(url("https://github.com/rgurlek/FAIRforecast/blob/master/sample_data/data.RData?raw=true"))
 }
 
 extract <-
