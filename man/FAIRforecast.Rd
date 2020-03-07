@@ -3,7 +3,6 @@
 \docType{package}
 \name{FAIRforecast}
 \alias{FAIRforecast}
-\alias{FAIRforecast-package}
 \title{FAIRforecast: A package for FAIR forecast}
 \description{
 FAIR is a forecasting tool developed to support decision making in a retail

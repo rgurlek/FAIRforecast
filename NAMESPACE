@@ -3,5 +3,6 @@
 export(FAIR_predict)
 export(FAIR_train)
 export(cross_category)
+export(sample_data)
 export(var_cre)
 export(variable_importance)

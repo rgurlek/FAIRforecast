@@ -4,10 +4,22 @@
 \alias{FAIR_train}
 \title{Fit a FAIR model}
 \usage{
-FAIR_train(train_data, store, category, time_id, seasonality, marketing,
-  cc_marketing = NULL, sales, lag = 2, K = 6, alpha = c(0, 0.1,
-  0.3, 0.5, 0.7, 0.9, 1), frequency = 365.25/7, horizon = 1,
-  parallel = F)
+FAIR_train(
+  train_data,
+  store,
+  category,
+  time_id,
+  seasonality,
+  marketing,
+  cc_marketing = NULL,
+  sales,
+  lag = 2,
+  K = 6,
+  alpha = c(0, 0.1, 0.3, 0.5, 0.7, 0.9, 1),
+  frequency = 365.25/7,
+  horizon = 1,
+  parallel = F
+)
 }
 \arguments{
 \item{train_data}{a dataframe object that contains observations with the following

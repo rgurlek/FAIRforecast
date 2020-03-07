@@ -4,8 +4,7 @@
 \alias{variable_importance}
 \title{Plot variable importance}
 \usage{
-variable_importance(object, n_vars = 10, categories = NULL,
-  only_own = T)
+variable_importance(object, n_vars = 10, categories = NULL, only_own = T)
 }
 \arguments{
 \item{object}{A FAIRforecast object obtained with \code{\link{FAIR_train}}.}

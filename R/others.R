@@ -65,8 +65,13 @@ NULL
 #' @details Note that distributional variables do not add up to 1 because they exclude
 #'non-discounted SKUs.
 #'
-#' @format A data frame with 78163 rows and 23 variables:
-"sample_data"
+#' @format A data frame with 78163 rows and 23 variables.
+#'
+#'@export
+sample_data <- function(){
+  library(repmis)
+  source_data("https://github.com/rgurlek/FAIRforecast/blob/master/sample_data/sample_data.RData?raw=true")
+}
 
 extract <-
   function(my_list, index) {
