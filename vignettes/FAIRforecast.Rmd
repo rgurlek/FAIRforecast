@@ -128,29 +128,6 @@ cross_category(my_model)
 ```
 
 
-```{r eval=FALSE, include=FALSE}
-### This part is not included in the vignette. Because, the current version of FAIR does not have a variable to distinguish the scenarios with the same store-category-week combination. Also, with the sample data we have, the other categories also should be provided to the predict function because of cc_marketing. Here is the paragraph I wrote for this example:
-### The user can input a set of scenarios to `FAIR_predict` function to guide a decision. For example, the below code compares the sales for a base scenario, an agressive-ad scenario, and a scenario where the same agressive ad strategy is followed on a holiday.
-
-# The base scenario. We take a random observation from the test data.
-scenarios <- test_data[3757, ]
-scenarios
-
-# The agressive-ad scenario. We change the average ad in the category.
-scenarios[2, ] <- scenarios[1, ]
-scenarios[2, "ad"] <- 0.30
-
-# Agressive-ad-on-holiday scenario. We take an observation on a holiday for the same store-category and change its marketing variables to the those of scenario 2.
-scenarios[3, ] <- test_data[3766, ]
-marketing_variables = c("price", "display", "discount", "dist_5", "dist_10",
-                        "dist_15", "dist_20", "dist_30", "dist_40", "dist_50",
-                        "dist_100", "ad")
-scenarios[3, marketing_variables] <- scenarios[2, marketing_variables]
-
-FAIR_predict(my_model, scenarios)
-```
-
-
 ## References
 
 Gür Ali, Ö. and Gürlek, R. (2019) Automatic Interpretable Retail Forecasting with Promotional Scenarios

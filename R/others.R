@@ -98,21 +98,21 @@ deseason <- function(my_data,
   var_list <- c(sales, marketing)
   fit <- function(my_var) {
     train <- my_data[my_data[, time_id] < t1, c(my_var, seasonality)]
-    if (sd(train[, my_var]) == 0){
+    if (stats::sd(train[, my_var]) == 0){
       s1_models[[my_var]] <<- train[1, my_var]
       return(my_data[, my_var])
       #If there is no variance in the training data, return
       #training + validation as it is
     } else{
-      myformula <- as.formula(paste0("log(", my_var, "+1) ~ ."))
-      my_model <- lm(formula = myformula,
+      myformula <- stats::as.formula(paste0("log(", my_var, "+1) ~ ."))
+      my_model <- stats::lm(formula = myformula,
                      data = train,
                      model = F)
       s1_models[[my_var]] <<- my_model
       #above line ensures obs until t1+horizon-1 are predicted.
       #If the data is not validation (training), it is same as t1-1 since
       #all points are less than t1
-      return(log(my_data[, my_var] + 1) - predict.lm(my_model, my_data))
+      return(log(my_data[, my_var] + 1) - stats::predict.lm(my_model, my_data))
     }
   }
   new_vars <- lapply(var_list, fit)
@@ -123,7 +123,7 @@ deseason <- function(my_data,
   my_list <- list(my_data, s1_models)
   return(my_list)
 }
-#'@export
+
 var_cre <- function(my_data,
                     category,
                     category_list,
@@ -191,7 +191,7 @@ step2 <-
     }
 
     train <- my_data[my_data[, time_id] < t1,]
-    train <- train[complete.cases(train[, marketing]),]
+    train <- train[stats::complete.cases(train[, marketing]),]
 
     if (is_val) {
       test <- my_data[!my_data[, time_id] < t1,]
@@ -259,7 +259,7 @@ step2 <-
 
 time_series <- function(my_data, store, time_id, category) {
   sum_func <- function(x) if (all(is.na(x))) NA_integer_  else sum(x)
-  series <- aggregate(
+  series <- stats::aggregate(
     my_data$residual_2,
     by = list(my_data[, store], my_data[, time_id], my_data[, category]),
     FUN = sum_func,
@@ -292,7 +292,7 @@ time_series <- function(my_data, store, time_id, category) {
 
 step3 <- function(x, time_id, frequency) {
   x <- x[order(x[, time_id]),]
-  my_series <- ts(x$residual_2, frequency = frequency)
+  my_series <- stats::ts(x$residual_2, frequency = frequency)
   my_model <- forecast::stlm(forecast::na.interp(my_series))
   x$STL <- as.numeric(my_model$fitted)
   return(list(x, my_model))
@@ -371,7 +371,7 @@ cross_category <- function(object){
     my_mat <- my_mat[my_mat[, 'variable'] %in% cc_list, ]
     my_mat$category <- substr(my_mat$variable, 1,
                               regexpr("_", my_mat$variable) - 1)
-    my_mat <- aggregate(my_mat$magnitude, list(my_mat$category), FUN = sum)
+    my_mat <- stats::aggregate(my_mat$magnitude, list(my_mat$category), FUN = sum)
     colnames(my_mat) <- c('Category', 'magnitude')
     for(j in 1:nrow(my_mat)){
       cross_mat[names(models)[i], my_mat[j, 'Category']] <-
@@ -383,8 +383,7 @@ cross_category <- function(object){
   p <- plotly::layout(
     plotly::plot_ly(x = colnames(cross_mat), y = rownames(cross_mat),
                     z = cross_mat,
-                    colorscale = scales::col_numeric("Blues", domain = NULL)(unique(scales::rescale(c(volcano)))),
-                    type = "heatmap"),
+colors = "Reds",                    type = "heatmap"),
     title = "Cross-category effects",
     xaxis = list(title = "Influencial Category"),
     yaxis = list(title = "Influenced Category")

@@ -110,7 +110,7 @@ FAIR_train <- function(train_data,
   for (t1 in t) {
     #block loop
     #deseasonalize data
-    is_val <- t1 != tail(t, 1)
+    is_val <- t1 != utils::tail(t, 1)
     if (is_val) {
       temp <- plyr::ddply(
         train_data,
@@ -201,7 +201,7 @@ FAIR_train <- function(train_data,
   best_pars <- function(my_data) {
     my_data$alpha <- as.numeric(as.character(my_data$alpha))
     my_data$lambda <- as.numeric(as.character(my_data$lambda))
-    parameter_ev1 <- aggregate(
+    parameter_ev1 <- stats::aggregate(
       my_data$RMSE,
       by = list(my_data$alpha, my_data$lambda),
       FUN = "mean",
@@ -209,7 +209,7 @@ FAIR_train <- function(train_data,
       drop = TRUE
     )
     names(parameter_ev1)[ncol(parameter_ev1)] <- "mean"
-    parameter_ev2 <- aggregate(
+    parameter_ev2 <- stats::aggregate(
       my_data$RMSE,
       by = list(my_data$alpha, my_data$lambda),
       FUN = "sd",

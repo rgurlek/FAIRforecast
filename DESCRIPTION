@@ -2,7 +2,7 @@ Package: FAIRforecast
 Type: Package
 Title: A Package for FAIR Forecast
 Version: 0.1.0
-Description: FAIR is a forecasting tool developed to support decision making in a retail environment. It provides multi-step-ahead sales forecasts at the category-store level, which are based on an interpretable and transparent model. These aspects make it an objective tool with which different promotional strategies (scenarios) can be compared and insights can be generated. Additionally, the FAIRforecast package provides plotting functions that generate figures showing the relative strength of the interactions between categories and important promotional variables. For more information, see vignette("FAIRforecast") and Gür Ali & Gürlek (2020).
+Description: FAIR is a forecasting tool developed to support decision making in a retail environment. It provides multi-step-ahead sales forecasts at the category-store level, which are based on an interpretable and transparent model. These aspects make it an objective tool with which different promotional strategies (scenarios) can be compared and insights can be generated. Additionally, the FAIRforecast package provides plotting functions that generate figures showing the relative strength of the interactions between categories and important promotional variables. For more information, see the vignette and original paper provided in the GitHub URL below.
 Authors@R: c(
     person("Özden", "Gür Ali", email = "OALI@ku.edu.tr", role = "aut"),
     person("Ragip", "Gürlek", email = "rgurlek@emory.edu", role = c("aut", "cre")))
@@ -17,6 +17,8 @@ Imports:
     glmnet,
     plotly,
     plyr,
+	scales,
+	stats,
     tidyr
 RoxygenNote: 7.0.2
 Suggests: 

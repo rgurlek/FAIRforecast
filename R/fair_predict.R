@@ -84,7 +84,7 @@ FAIR_predict <- function(object, new_data, parallel = F) {
         return(rep(my_model, nrow(my_data)))
       if (is.null(my_model))
         return(rep(NA, nrow(my_data)))
-      return(suppressWarnings(predict.lm(my_model, my_data)))
+      return(suppressWarnings(stats::predict.lm(my_model, my_data)))
     }
 
     new_vars <- lapply(var_list, fit)

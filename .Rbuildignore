@@ -1,3 +1,7 @@
 ^.*\.Rproj$
 ^\.Rproj\.user$
-^\sample_data
+^sample_data$
+^index.html$
+^_config.yml$
+^README.md$
+^\.travis\.yml$
