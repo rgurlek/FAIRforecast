@@ -300,7 +300,9 @@ step3 <- function(x, time_id, frequency) {
 
 #'Plot variable importance
 #'
-#'Plots the average absolute coefficients of the top marketing variables.
+#'Plots the average absolute coefficients of the marketing variables scaled by
+#'the maximum effect. The most important variable has the value of 100 and the
+#'others have a value proportional to their average absolute coefficient.
 #'
 #'@param object A FAIRforecast object obtained with \code{\link{FAIR_train}}.
 #'@param n_vars Number of top marketing variables to be included. The
@@ -330,9 +332,12 @@ variable_importance <- function(object, n_vars = 10, categories = NULL,
     vars <- vars[!vars$variable %in% cross, ]
   }
   vars <- vars[order(vars[, "magnitude"], decreasing = T), ]
+  vars$magnitude <- vars$magnitude / max(vars$magnitude) * 100
+  # vars matrix has the own-category marketing variables sorted by their
+  # average absolute coefficients in Stage 2 calculated over categories.
+  # Then, the average effect (magnitude) is scaled such that the maximum effect
+  # is 100.
   n_vars <- min(n_vars, nrow(vars))
-  #vars matrix has the own-category marketing variables sorted by their
-  #average absolute coefficients in Stage 2 calculated over categories
 
   p <- plotly::layout(plotly::plot_ly(
     x = factor(vars[1:n_vars, "variable"],
@@ -383,7 +388,7 @@ cross_category <- function(object){
   p <- plotly::layout(
     plotly::plot_ly(x = colnames(cross_mat), y = rownames(cross_mat),
                     z = cross_mat,
-colors = "Reds",                    type = "heatmap"),
+                    colors = "Reds", type = "heatmap"),
     title = "Cross-category effects",
     xaxis = list(title = "Influencial Category"),
     yaxis = list(title = "Influenced Category")

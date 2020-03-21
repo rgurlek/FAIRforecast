@@ -18,5 +18,7 @@ are calculated. The default, \code{NULL}, includes the all.}
 \item{only_own}{If \code{TRUE}, only the focal variables are plotted.}
 }
 \description{
-Plots the average absolute coefficients of the top marketing variables.
+Plots the average absolute coefficients of the marketing variables scaled by
+the maximum effect. The most important variable has the value of 100 and the
+others have a value proportional to their average absolute coefficient.
 }

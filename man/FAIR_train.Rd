@@ -71,7 +71,7 @@ chosen with a CV. All values should be in [0,1]. The default is
 }
 \value{
 The function outputs a list with the following objects:
- \item{forecasts}{A data.frame of the final forecast and its components for each
+ \item{fit}{A data.frame of the sales estimate and its components for each
  \code{store}-\code{category}-\code{time_id} combination in \code{train_data}.
  See the value section of \code{\link{FAIR_predict}} for details.}
  \item{models}{the model for each stage and a data.frame for in-sample bias}

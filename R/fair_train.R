@@ -49,7 +49,7 @@
 #'  ignored and the user is informed.
 #'
 #'@return The function outputs a list with the following objects:
-#'  \item{forecasts}{A data.frame of the final forecast and its components for each
+#'  \item{fit}{A data.frame of the sales estimate and its components for each
 #'  \code{store}-\code{category}-\code{time_id} combination in \code{train_data}.
 #'  See the value section of \code{\link{FAIR_predict}} for details.}
 #'  \item{models}{the model for each stage and a data.frame for in-sample bias}
@@ -304,7 +304,7 @@ FAIR_train <- function(train_data,
   train_data <- data.frame(train_data[, c(store, category, time_id)],
                      prediction_1,
                      temp[my_index, c("prediction_2", "prediction_3")])
-  colnames(train_data)[4:6] <-  c("Seasonal_and_trend_pattern",
+  colnames(train_data)[4:6] <-  c("Base_Sales",
                             "Marketing_deviation_multiplier",
                             "Disturbance_multiplier")
   train_data <-
@@ -312,11 +312,11 @@ FAIR_train <- function(train_data,
           in_sample_bias,
           by = c(store, category),
           all.x = T)
-  train_data$Seasonal_and_trend_pattern <-
-    exp(train_data$Seasonal_and_trend_pattern) * train_data$Bias_cor
+  train_data$Base_Sales <-
+    exp(train_data$Base_Sales) * train_data$Bias_cor
   train_data$Marketing_deviation_multiplier <- exp(train_data$Marketing_deviation_multiplier)
   train_data$Disturbance_multiplier <- exp(train_data$Disturbance_multiplier)
-  train_data$Forecast <- (train_data$Seasonal_and_trend_pattern *
+  train_data$Sales_estimate <- (train_data$Base_Sales *
                     ifelse(is.na(train_data$Marketing_deviation_multiplier), 1,
                             train_data$Marketing_deviation_multiplier) *
                     ifelse(is.na(train_data$Disturbance_multiplier), 1,
@@ -354,7 +354,7 @@ FAIR_train <- function(train_data,
     )
 
   return(list(
-    forecasts = train_data,
+    fit = train_data,
     models = list(
       Stage1 = s1_models,
       Stage2 = s2_models,

@@ -22,7 +22,7 @@ and marketing variables (numeric).}
 A data.frame of the final forecast and its components for each
  \code{store}-\code{category}-\code{time_id} combination in \code{new_data}.
  The columns are:
- \item{Seasonal_and_trend_pattern}{The forecast based on established
+ \item{Base_Sales}{The forecast based on established
  seasonality and trend in sales and marketing. Obtained with Stage 1 and
  adjusted for bias.}
  \item{Marketing_deviation_multiplier}{Multiplier based on the marketing

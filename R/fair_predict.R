@@ -19,7 +19,7 @@
 #'@return A data.frame of the final forecast and its components for each
 #'  \code{store}-\code{category}-\code{time_id} combination in \code{new_data}.
 #'  The columns are:
-#'  \item{Seasonal_and_trend_pattern}{The forecast based on established
+#'  \item{Base_Sales}{The forecast based on established
 #'  seasonality and trend in sales and marketing. Obtained with Stage 1 and
 #'  adjusted for bias.}
 #'  \item{Marketing_deviation_multiplier}{Multiplier based on the marketing
@@ -174,7 +174,7 @@ FAIR_predict <- function(object, new_data, parallel = F) {
                              "prediction_2",
                              "prediction_3")],
                     all.x = T)
-  colnames(new_data)[4:6] <-  c("Seasonal_and_trend_pattern",
+  colnames(new_data)[4:6] <-  c("Base_Sales",
                                 "Marketing_deviation_multiplier",
                                 "Disturbance_multiplier")
   new_data <-
@@ -182,12 +182,12 @@ FAIR_predict <- function(object, new_data, parallel = F) {
           in_sample_bias,
           by = c(store, category),
           all.x = T)
-  new_data$Seasonal_and_trend_pattern <-
-    exp(new_data$Seasonal_and_trend_pattern) * new_data$Bias_cor
+  new_data$Base_Sales <-
+    exp(new_data$Base_Sales) * new_data$Bias_cor
   new_data$Marketing_deviation_multiplier <-
     exp(new_data$Marketing_deviation_multiplier)
   new_data$Disturbance_multiplier <- exp(new_data$Disturbance_multiplier)
-  new_data$Forecast <- (new_data$Seasonal_and_trend_pattern *
+  new_data$Forecast <- (new_data$Base_Sales *
                         ifelse(is.na(new_data$Marketing_deviation_multiplier), 1,
                                new_data$Marketing_deviation_multiplier) *
                         ifelse(is.na(new_data$Disturbance_multiplier), 1,
