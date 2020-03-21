@@ -45,7 +45,7 @@ The FAIRforecast package trains the forecasting model with its core function, `F
 ```{r warning=FALSE}
 library(FAIRforecast)
 data_ret <- sample_data()
-train_data <- data_ret[data_ret$week < 1401, ]
+train_data <- data_ret[data_ret$week < 184, ]
 my_model <- FAIR_train(train_data = train_data,
                        store = "store_n",
                        category = "category",
@@ -95,13 +95,11 @@ Similarly, the `Stage3` object in the `models` list is the output obtained from 
 Having fitted our FAIR model, we can predict the sales for the following weeks. To do that, we use `FAIR_predict` function. It requires the object we obtained from `FAIR_train` and the new data. The new data should have the store and category identifiers, time id, seasonality and calendar variables, and marketing activity columns. The names should match the ones in `train_data` argument from the training. `time_id` column should contain weeks after the last week of `train_data` and cannot be out of the horizon specified for `FAIR_train`.
 
 ```{r}
-test_data <- data_ret[data_ret$week >= 1401,
+test_data <- data_ret[data_ret$week >= 184,
                          c("store_n", "category", "week",
                            c("thanksgiving", "christmas", "other_holidays",
                              "season", "first", "fifteenth", "month"),
-                           c("price", "display", "discount", "dist_5",
-                             "dist_10", "dist_15", "dist_20", "dist_30",
-                             "dist_40", "dist_50", "dist_100", "ad"))]
+                           c("price", "display", "discount", "ad"))]
 predictions <- FAIR_predict(my_model, test_data)
 head(predictions)
 ```
