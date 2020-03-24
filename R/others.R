@@ -39,7 +39,7 @@
 #' @name FAIRforecast
 NULL
 
-#' A sample retail sales dataset
+#' A sample synthetic retail sales dataset
 #'
 #' Loads a simulated dataset from Github.com and returns it. The dataframe contains
 #' weekly category-store-level sales of a retail chain. It provides the promotional
