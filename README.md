@@ -5,5 +5,8 @@ FAIR is a forecasting tool developed to support decision making in a retail envi
 
 # Installation
 ``` r
+# Simple installation
 devtools::install_github("https://github.com/rgurlek/FAIRforecast")
+# Install and build the vignette
+devtools::install_github("https://github.com/rgurlek/FAIRforecast", build_opts = c("--no-resave-data", "--no-manual"), build_vignettes = TRUE)
 ```
