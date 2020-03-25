@@ -2,7 +2,7 @@
 % Please edit documentation in R/others.R
 \name{sample_data}
 \alias{sample_data}
-\title{A sample retail sales dataset}
+\title{A sample synthetic retail sales dataset}
 \usage{
 sample_data()
 }
