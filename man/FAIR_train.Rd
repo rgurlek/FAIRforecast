@@ -18,7 +18,9 @@ FAIR_train(
   alpha = c(0, 0.1, 0.3, 0.5, 0.7, 0.9, 1),
   frequency = 365.25/7,
   horizon = 1,
-  parallel = F
+  parallel = F,
+  pool_seasonality = F,
+  NA_threshold = 0.3
 )
 }
 \arguments{

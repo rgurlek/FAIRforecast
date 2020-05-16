@@ -81,7 +81,9 @@ FAIR_train <- function(train_data,
                        alpha = c(0, 0.1, 0.3, 0.5, 0.7, 0.9, 1),
                        frequency = 365.25 / 7,
                        horizon = 1,
-                       parallel = F) {
+                       parallel = F,
+                       pool_seasonality = F,
+                       NA_threshold = 0.3) {
   #drop unnecessary columns
   train_data <- train_data[, c(store, category, time_id, seasonality, marketing, sales)]
   temp <- train_data[, c(marketing, sales)]
@@ -104,6 +106,7 @@ FAIR_train <- function(train_data,
   if(! time_id %in% seasonality) seasonality <- c(seasonality, time_id)
 
   category_list <- unique(train_data[, category])
+  train_data[, category] <- as.factor(train_data[, category])
 
   par_mat <- data.frame()
   lambdas <- list()#used by step2 function
@@ -111,38 +114,44 @@ FAIR_train <- function(train_data,
     #block loop
     #deseasonalize data
     is_val <- t1 != utils::tail(t, 1)
+    if(pool_seasonality){
+      pool <- store
+    } else {
+      pool <- c(store,category)
+    }
     if (is_val) {
       temp <- plyr::ddply(
         train_data,
-        c(store, category),
+        pool,
         deseason,
         t1 = t1,
         horizon = horizon,
         sales = sales,
         time_id = time_id,
         marketing = marketing,
-        store = store,
+        category = category,
         seasonality = seasonality,
         is_val = is_val,
+        pool_seasonality = pool_seasonality,
         parallel = parallel,
         .parallel = parallel
       )
     } else {
-      temp <-
-        plyr::dlply(
-          train_data,
-          c(store, category),
-          deseason,
-          t1 = t1,
-          horizon = horizon,
-          sales = sales,
-          time_id = time_id,
-          marketing = marketing,
-          store = store,
-          seasonality = seasonality,
-          is_val = is_val,
-          parallel = parallel,
-          .parallel = parallel
+      temp <- plyr::dlply(
+        train_data,
+        pool,
+        deseason,
+        t1 = t1,
+        horizon = horizon,
+        sales = sales,
+        time_id = time_id,
+        marketing = marketing,
+        category = category,
+        seasonality = seasonality,
+        is_val = is_val,
+        pool_seasonality = pool_seasonality,
+        parallel = parallel,
+        .parallel = parallel
         )
       s1_models <- extract(temp, 2)
       temp <- extract(temp, 1)
@@ -263,7 +272,7 @@ FAIR_train <- function(train_data,
   #step3
   ext_marketing <- ext_marketing[!(ext_marketing %in% marketing)]
   temp <- temp[, !(colnames(temp) %in% ext_marketing)]
-  series <- time_series(temp, store, time_id, category)
+  series <- time_series(temp, store, time_id, category, NA_threshold)
   predictions_3 <- plyr::dlply(series,
                                c(store, category),
                                step3,
@@ -335,23 +344,25 @@ FAIR_train <- function(train_data,
     frequency,
     horizon,
     last_week,
-    ext_marketing
+    ext_marketing,
+    pool_seasonality
   )
-  names(pars) <-
-    c(
-      "store",
-      "category",
-      "time_id",
-      "seasonality",
-      "marketing",
-      "cc_marketing",
-      "sales",
-      "lag",
-      "frequency",
-      "horizon",
-      "last_week",
-      "ext_marketing"
-    )
+  names(pars) <- c(
+    "store",
+    "category",
+    "time_id",
+    "seasonality",
+    "marketing",
+    "cc_marketing",
+    "sales",
+    "lag",
+    "frequency",
+    "horizon",
+    "last_week",
+    "ext_marketing",
+    "pool_seasonality"
+  )
+
 
   return(list(
     fit = train_data,

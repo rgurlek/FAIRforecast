@@ -86,9 +86,10 @@ deseason <- function(my_data,
                      sales,
                      time_id,
                      marketing,
-                     store,
+                     category,
                      seasonality,
                      is_val,
+                     pool_seasonality,
                      parallel) {
   #used in the cross validation. Does the first step.
   #t1 is the first time_id of the validation set.
@@ -97,7 +98,11 @@ deseason <- function(my_data,
   my_data <- my_data[my_data[, time_id] < t1 + horizon, ]
   var_list <- c(sales, marketing)
   fit <- function(my_var) {
-    train <- my_data[my_data[, time_id] < t1, c(my_var, seasonality)]
+    if(pool_seasonality){
+      train <- my_data[my_data[, time_id] < t1, c(my_var, category, seasonality)]
+    } else{
+      train <- my_data[my_data[, time_id] < t1, c(my_var, seasonality)]
+    }
     if (stats::sd(train[, my_var]) == 0){
       s1_models[[my_var]] <<- train[1, my_var]
       return(my_data[, my_var])
@@ -257,7 +262,7 @@ step2 <-
     }
   }
 
-time_series <- function(my_data, store, time_id, category) {
+time_series <- function(my_data, store, time_id, category, NA_threshold) {
   sum_func <- function(x) if (all(is.na(x))) NA_integer_  else sum(x)
   series <- stats::aggregate(
     my_data$residual_2,
@@ -272,13 +277,14 @@ time_series <- function(my_data, store, time_id, category) {
   total_week <- (l_week - f_week + 1)
   mis_fun <- function(x) {
     total_mis <- sum(is.na(x$residual_2))
-    is_valid <- (total_mis / total_week) <= 0.3
+    is_valid <- (total_mis / total_week) <= NA_threshold
     if (is_valid) {
       return(x)
     } else {
       warning(
         "Series for store ", x[1, store], " and category ", x[1, category],
-        " has missing values that are more than 30% of the lenth of the series.",
+        " has missing values that are more than ", NA_threshold * 100,
+        "% of the lenth of the series.",
         " Thus, it is excluded and its forecasts are set to NA."
       )
       return(NULL)

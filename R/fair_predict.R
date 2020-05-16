@@ -70,16 +70,23 @@ FAIR_predict <- function(object, new_data, parallel = F) {
   if (!setequal(colnames(lag_data), colnames(new_data))) {
     stop("Colunm names of new_data and the training data do not match!")
   }
+  lag_data[, category] <- as.factor(lag_data[, category])
+  new_data[, category] <- as.factor(new_data[, category])
   temp <- rbind(lag_data, new_data)
   remove(lag_data)
   category_list <- unique(temp[, category])
 
   deseason_new <- function(my_data) {
-    my_category <- my_data[, category][1]
+    if(!pool_seasonality) my_category <- my_data[, category][1]
     my_store <- my_data[, store][1]
     var_list <- c(sales, marketing)
     fit <- function(my_var) {
-      my_model <- Stage1[[paste0(my_store, ".", my_category)]][[my_var]]
+      if(pool_seasonality){
+        model_name <- as.character(my_store)
+      } else {
+        model_name <- paste0(my_store, ".", my_category)
+      }
+      my_model <- Stage1[[model_name]][[my_var]]
       if (is.numeric(my_model))
         return(rep(my_model, nrow(my_data)))
       if (is.null(my_model))
@@ -96,8 +103,12 @@ FAIR_predict <- function(object, new_data, parallel = F) {
   }
 
   #deseasonalize data
-  temp <- plyr::ddply(temp, c(category, store), deseason_new,
-                      .parallel = parallel)
+  if(pool_seasonality){
+    pool <- store
+  } else {
+    pool <- c(store,category)
+  }
+  temp <- plyr::ddply(temp, pool, deseason_new, .parallel = parallel)
 
   #append marketing variables of other categories and required lags as columns
   temp <-
