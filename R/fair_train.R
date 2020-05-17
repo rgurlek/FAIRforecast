@@ -83,7 +83,8 @@ FAIR_train <- function(train_data,
                        horizon = 1,
                        parallel = F,
                        pool_seasonality = F,
-                       NA_threshold = 0.3) {
+                       NA_threshold = 0.3,
+                       trim_Stage1 = T) {
   #drop unnecessary columns
   train_data <- train_data[, c(store, category, time_id, seasonality, marketing, sales)]
   temp <- train_data[, c(marketing, sales)]
@@ -133,6 +134,7 @@ FAIR_train <- function(train_data,
         seasonality = seasonality,
         is_val = is_val,
         pool_seasonality = pool_seasonality,
+        trim_model = trim_Stage1,
         parallel = parallel,
         .parallel = parallel
       )
@@ -150,6 +152,7 @@ FAIR_train <- function(train_data,
         seasonality = seasonality,
         is_val = is_val,
         pool_seasonality = pool_seasonality,
+        trim_model = trim_Stage1,
         parallel = parallel,
         .parallel = parallel
         )

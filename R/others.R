@@ -80,6 +80,32 @@ extract <-
       my_element[[index]]))
   }
 
+# Credit: http://www.win-vector.com/blog/2014/05/trimming-the-fat-from-glm-models-in-r/
+stripGlmLR = function(cm) {
+  cm$y = c()
+  cm$model = c()
+
+  cm$residuals = c()
+  cm$fitted.values = c()
+  cm$effects = c()
+  cm$qr$qr = c()
+  cm$linear.predictors = c()
+  cm$weights = c()
+  cm$prior.weights = c()
+  cm$data = c()
+
+
+  cm$family$variance = c()
+  cm$family$dev.resids = c()
+  cm$family$aic = c()
+  cm$family$validmu = c()
+  cm$family$simulate = c()
+  attr(cm$terms,".Environment") = c()
+  attr(cm$formula,".Environment") = c()
+
+  cm
+}
+
 deseason <- function(my_data,
                      t1,
                      horizon,
@@ -90,7 +116,8 @@ deseason <- function(my_data,
                      seasonality,
                      is_val,
                      pool_seasonality,
-                     parallel) {
+                     parallel,
+                     trim_model) {
   #used in the cross validation. Does the first step.
   #t1 is the first time_id of the validation set.
   s1_models <- list()
@@ -113,6 +140,9 @@ deseason <- function(my_data,
       my_model <- stats::lm(formula = myformula,
                      data = train,
                      model = F)
+      if(trim_model){
+        my_model <- stripGlmLR(my_model)
+      }
       s1_models[[my_var]] <<- my_model
       #above line ensures obs until t1+horizon-1 are predicted.
       #If the data is not validation (training), it is same as t1-1 since
