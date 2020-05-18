@@ -21,7 +21,8 @@ FAIR_train(
   parallel = F,
   pool_seasonality = F,
   NA_threshold = 0.3,
-  trim_Stage1 = T
+  trim_Stage1 = T,
+  regularized_seasonality = F
 )
 }
 \arguments{

@@ -77,26 +77,45 @@ FAIR_predict <- function(object, new_data, parallel = F) {
   category_list <- unique(temp[, category])
 
   deseason_new <- function(my_data) {
-    if(!pool_seasonality) my_category <- my_data[, category][1]
     my_store <- my_data[, store][1]
-    var_list <- c(sales, marketing)
-    fit <- function(my_var) {
-      if(pool_seasonality){
-        model_name <- as.character(my_store)
-      } else {
-        model_name <- paste0(my_store, ".", my_category)
+    if(!pool_seasonality){
+      my_category <- my_data[, category][1]
+      model_name <- paste0(my_store, ".", my_category)
+      X_list <- seasonality
+    } else {
+      model_name <- as.character(my_store)
+      X_list <- c(category, seasonality)
+    }
+    Y_list <- c(sales, marketing)
+
+    if(regularized_seasonality){
+      my_data <- my_data[stats::complete.cases(my_data[, X_list]), ]
+      new_vars <-
+        predict(Stage1[[model_name]],
+                as.matrix(fastDummies::dummy_cols(my_data[, X_list],
+                                                  remove_first_dummy = T,
+                                                  remove_selected_columns = T)),
+                s = "lambda.1se")
+      new_vars <- data.frame(new_vars[,,1])
+      # First element of Y_list is sales. Colnames of new_vars is Y_list.
+      # Keep sales column as the prediction instead of residual of sales.
+      # The later parts use the prediction.
+      new_vars[, -1] <- log(my_data[, Y_list[-1]] + 1) - new_vars[, -1]
+    } else {
+      fit <- function(my_var) {
+        my_model <- Stage1[[model_name]][[my_var]]
+        if (is.numeric(my_model))
+          return(rep(my_model, nrow(my_data)))
+        if (is.null(my_model))
+          return(rep(NA, nrow(my_data)))
+        return(log(my_data[, my_var] + 1) -
+                 suppressWarnings(stats::predict.lm(my_model, my_data)))
       }
-      my_model <- Stage1[[model_name]][[my_var]]
-      if (is.numeric(my_model))
-        return(rep(my_model, nrow(my_data)))
-      if (is.null(my_model))
-        return(rep(NA, nrow(my_data)))
-      return(suppressWarnings(stats::predict.lm(my_model, my_data)))
+      new_vars <- lapply(Y_list, fit)
+      new_vars <- do.call(data.frame, new_vars)
     }
 
-    new_vars <- lapply(var_list, fit)
-    new_vars <- do.call(data.frame, new_vars)
-    my_data[, var_list] <- new_vars
+    my_data[, Y_list] <- new_vars
     colnames(my_data)[colnames(my_data) == sales] <- "prediction_1"
 
     return(my_data)

@@ -84,7 +84,8 @@ FAIR_train <- function(train_data,
                        parallel = F,
                        pool_seasonality = F,
                        NA_threshold = 0.3,
-                       trim_Stage1 = T) {
+                       trim_Stage1 = T,
+                       regularized_seasonality = F) {
   #drop unnecessary columns
   train_data <- train_data[, c(store, category, time_id, seasonality, marketing, sales)]
   temp <- train_data[, c(marketing, sales)]
@@ -121,41 +122,29 @@ FAIR_train <- function(train_data,
       pool <- c(store,category)
     }
     if (is_val) {
-      temp <- plyr::ddply(
-        train_data,
-        pool,
-        deseason,
-        t1 = t1,
-        horizon = horizon,
-        sales = sales,
-        time_id = time_id,
-        marketing = marketing,
-        category = category,
-        seasonality = seasonality,
-        is_val = is_val,
-        pool_seasonality = pool_seasonality,
-        trim_model = trim_Stage1,
-        parallel = parallel,
-        .parallel = parallel
-      )
+      agg_fun <- plyr::ddply
     } else {
-      temp <- plyr::dlply(
-        train_data,
-        pool,
-        deseason,
-        t1 = t1,
-        horizon = horizon,
-        sales = sales,
-        time_id = time_id,
-        marketing = marketing,
-        category = category,
-        seasonality = seasonality,
-        is_val = is_val,
-        pool_seasonality = pool_seasonality,
-        trim_model = trim_Stage1,
-        parallel = parallel,
-        .parallel = parallel
-        )
+      agg_fun <- plyr::dlply
+    }
+    temp <- agg_fun(
+      train_data,
+      pool,
+      deseason,
+      t1 = t1,
+      horizon = horizon,
+      sales = sales,
+      time_id = time_id,
+      marketing = marketing,
+      category = category,
+      seasonality = seasonality,
+      is_val = is_val,
+      pool_seasonality = pool_seasonality,
+      trim_model = trim_Stage1,
+      parallel = parallel,
+      .parallel = parallel,
+      regularized_seasonality = regularized_seasonality
+    )
+    if(!is_val){
       s1_models <- extract(temp, 2)
       temp <- extract(temp, 1)
       temp <- do.call(rbind, temp)
@@ -348,7 +337,8 @@ FAIR_train <- function(train_data,
     horizon,
     last_week,
     ext_marketing,
-    pool_seasonality
+    pool_seasonality,
+    regularized_seasonality
   )
   names(pars) <- c(
     "store",
@@ -363,7 +353,8 @@ FAIR_train <- function(train_data,
     "horizon",
     "last_week",
     "ext_marketing",
-    "pool_seasonality"
+    "pool_seasonality",
+    "regularized_seasonality"
   )
 
 

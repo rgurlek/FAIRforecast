@@ -117,42 +117,64 @@ deseason <- function(my_data,
                      is_val,
                      pool_seasonality,
                      parallel,
-                     trim_model) {
+                     trim_model,
+                     regularized_seasonality) {
   #used in the cross validation. Does the first step.
   #t1 is the first time_id of the validation set.
-  s1_models <- list()
   my_data$Original_Sales <- my_data[, sales]
   my_data <- my_data[my_data[, time_id] < t1 + horizon, ]
-  var_list <- c(sales, marketing)
-  fit <- function(my_var) {
-    if(pool_seasonality){
-      train <- my_data[my_data[, time_id] < t1, c(my_var, category, seasonality)]
-    } else{
-      train <- my_data[my_data[, time_id] < t1, c(my_var, seasonality)]
-    }
-    if (stats::sd(train[, my_var]) == 0){
-      s1_models[[my_var]] <<- train[1, my_var]
-      return(my_data[, my_var])
-      #If there is no variance in the training data, return
-      #training + validation as it is
-    } else{
-      myformula <- stats::as.formula(paste0("log(", my_var, "+1) ~ ."))
-      my_model <- stats::lm(formula = myformula,
-                     data = train,
-                     model = F)
-      if(trim_model){
-        my_model <- stripGlmLR(my_model)
-      }
-      s1_models[[my_var]] <<- my_model
-      #above line ensures obs until t1+horizon-1 are predicted.
-      #If the data is not validation (training), it is same as t1-1 since
-      #all points are less than t1
-      return(log(my_data[, my_var] + 1) - stats::predict.lm(my_model, my_data))
-    }
+  train <- my_data[my_data[, time_id] < t1, ]
+  Y_list <- c(sales, marketing)
+  if(pool_seasonality) {
+    X_list <- c(category, seasonality)
+  } else {
+    X_list <- seasonality
   }
-  new_vars <- lapply(var_list, fit)
-  new_vars <- do.call(data.frame, new_vars)
-  my_data[, var_list] <- new_vars
+  if(regularized_seasonality){
+    train <- train[stats::complete.cases(train[, c(Y_list, X_list)]), ]
+    s1_models <-
+      glmnet::cv.glmnet(
+        as.matrix(fastDummies::dummy_cols(train[, X_list],
+                                          remove_first_dummy = T,
+                                          remove_selected_columns = T)),
+        as.matrix(log(train[, Y_list] + 1)),
+        family = "mgaussian",
+        standardize.response = T,
+        alpha = 0.2
+      )
+    new_vars <-
+      predict(s1_models,
+              as.matrix(fastDummies::dummy_cols(my_data[, X_list],
+                                                remove_first_dummy = T,
+                                                remove_selected_columns = T)),
+              s = "lambda.1se")
+    new_vars <- data.frame(new_vars[,,1])
+    new_vars <- log(my_data[, Y_list] + 1) - new_vars
+  } else{
+    s1_models <- list()
+    fit <- function(my_var) {
+      train <- train[, X_list]
+      if (stats::sd(train[, my_var]) == 0){
+        s1_models[[my_var]] <<- train[1, my_var]
+        return(my_data[, my_var])
+        #If there is no variance in the training data, return
+        #training + validation as it is
+      } else{
+        myformula <- stats::as.formula(paste0("log(", my_var, "+1) ~ ."))
+        my_model <- stats::lm(formula = myformula,
+                              data = train,
+                              model = F)
+        if(trim_model){
+          my_model <- stripGlmLR(my_model)
+        }
+        s1_models[[my_var]] <<- my_model
+        return(log(my_data[, my_var] + 1) - stats::predict.lm(my_model, my_data))
+      }
+    }
+    new_vars <- lapply(Y_list, fit)
+    new_vars <- do.call(data.frame, new_vars)
+  }
+  my_data[, Y_list] <- new_vars
   if (is_val)
     return(my_data)
   my_list <- list(my_data, s1_models)
