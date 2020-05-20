@@ -94,8 +94,8 @@ FAIR_predict <- function(object, new_data, parallel = F) {
         predict(Stage1[[model_name]],
                 as.matrix(fastDummies::dummy_cols(my_data[, X_list],
                                                   remove_first_dummy = T,
-                                                  remove_selected_columns = T)),
-                s = "lambda.1se")
+                                                  remove_selected_columns = T),
+                s = "lambda.1se"))
       new_vars <- data.frame(new_vars[,,1])
       # First element of Y_list is sales. Colnames of new_vars is Y_list.
       # Keep sales column as the prediction instead of residual of sales.
@@ -164,8 +164,7 @@ FAIR_predict <- function(object, new_data, parallel = F) {
 
     my_model <- Stage2[[my_category]]
     my_data$prediction_2 <-
-      as.numeric(glmnet::predict.glmnet(
-        my_model, as.matrix(my_data[, ext_marketing])))
+      as.numeric(predict(my_model, as.matrix(my_data[, ext_marketing])))
     my_data$residual_2 <-
       my_data[, "prediction_1"] - my_data$prediction_2
     return(my_data)

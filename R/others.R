@@ -140,20 +140,21 @@ deseason <- function(my_data,
         as.matrix(log(train[, Y_list] + 1)),
         family = "mgaussian",
         standardize.response = T,
-        alpha = 0.2
+        alpha = 0.2,
+        nfolds = 3
       )
     new_vars <-
       predict(s1_models,
               as.matrix(fastDummies::dummy_cols(my_data[, X_list],
                                                 remove_first_dummy = T,
-                                                remove_selected_columns = T)),
-              s = "lambda.1se")
+                                                remove_selected_columns = T),
+              s = "lambda.1se"))
     new_vars <- data.frame(new_vars[,,1])
     new_vars <- log(my_data[, Y_list] + 1) - new_vars
   } else{
     s1_models <- list()
     fit <- function(my_var) {
-      train <- train[, X_list]
+      train <- train[, c(my_var, X_list)]
       if (stats::sd(train[, my_var]) == 0){
         s1_models[[my_var]] <<- train[1, my_var]
         return(my_data[, my_var])
@@ -230,7 +231,7 @@ var_cre <- function(my_data,
 step2 <-
   function(my_data,
            t1,
-           alpha,
+           alpha = NULL,
            marketing,
            category,
            lag,
@@ -279,8 +280,7 @@ step2 <-
               lambda = my_lambda
             )
         }
-        predictions <-
-          glmnet::predict.glmnet(my_model, as.matrix(test[, marketing]))
+        predictions <- as.numeric(predict(my_model, as.matrix(test[, marketing])))
         predictions <- exp(log(test$Original_Sales + 1) - test[, sales]
                            + predictions) - 1
         sq_errors <- (test$Original_Sales - predictions) ^ 2
@@ -296,19 +296,19 @@ step2 <-
     } else{
       pars <- par_mat_best[par_mat_best$category == my_category,]
       a <- as.numeric(as.character(pars$alpha[1]))
-      l <- as.numeric(as.character(pars$lambda[1]))
 
       my_model <-
-        glmnet::glmnet(
+        glmnet::cv.glmnet(
           as.matrix(train[, marketing]),
           train[, sales],
           family = "gaussian",
           alpha = a,
-          lambda = l
+          nlambda = 50,
+          nfolds = 3
         )
       train$prediction_2 <-
-        as.numeric(glmnet::predict.glmnet(
-          my_model, as.matrix(train[, marketing])))
+        as.numeric(predict(my_model, as.matrix(train[, marketing]),
+                           s = "lambda.1se"))
       train$residual_2 <- train[, sales] - train$prediction_2
       return(list(train, my_model))
     }

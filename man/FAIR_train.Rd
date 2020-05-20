@@ -22,7 +22,8 @@ FAIR_train(
   pool_seasonality = F,
   NA_threshold = 0.3,
   trim_Stage1 = T,
-  regularized_seasonality = F
+  regularized_seasonality = F,
+  use_params = NULL
 )
 }
 \arguments{

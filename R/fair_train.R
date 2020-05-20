@@ -85,7 +85,8 @@ FAIR_train <- function(train_data,
                        pool_seasonality = F,
                        NA_threshold = 0.3,
                        trim_Stage1 = T,
-                       regularized_seasonality = F) {
+                       regularized_seasonality = F,
+                       use_params = NULL) {
   #drop unnecessary columns
   train_data <- train_data[, c(store, category, time_id, seasonality, marketing, sales)]
   temp <- train_data[, c(marketing, sales)]
@@ -109,127 +110,165 @@ FAIR_train <- function(train_data,
 
   category_list <- unique(train_data[, category])
   train_data[, category] <- as.factor(train_data[, category])
+  if(pool_seasonality){
+    pool <- store
+  } else {
+    pool <- c(store,category)
+  }
+  #extended marketing vector
+  ext_marketing <- marketing
+  for (i in marketing) {
+    for (j in 0:lag) {
+      if (j == 0)
+        next()
+      ext_marketing <- append(ext_marketing, paste0(i, "_lag", j))
+    }
+  }
+  for (i in cc_marketing) {
+    for (j in category_list) {
+      ext_marketing <- append(ext_marketing, paste0(j, "_" , i))
+    }
+  }
 
-  par_mat <- data.frame()
-  lambdas <- list()#used by step2 function
-  for (t1 in t) {
-    #block loop
-    #deseasonalize data
-    is_val <- t1 != utils::tail(t, 1)
-    if(pool_seasonality){
-      pool <- store
-    } else {
-      pool <- c(store,category)
-    }
-    if (is_val) {
-      agg_fun <- plyr::ddply
-    } else {
-      agg_fun <- plyr::dlply
-    }
-    temp <- agg_fun(
-      train_data,
-      pool,
-      deseason,
-      t1 = t1,
-      horizon = horizon,
-      sales = sales,
-      time_id = time_id,
-      marketing = marketing,
-      category = category,
-      seasonality = seasonality,
-      is_val = is_val,
-      pool_seasonality = pool_seasonality,
-      trim_model = trim_Stage1,
-      parallel = parallel,
-      .parallel = parallel,
-      regularized_seasonality = regularized_seasonality
-    )
-    if(!is_val){
-      s1_models <- extract(temp, 2)
-      temp <- extract(temp, 1)
-      temp <- do.call(rbind, temp)
-    }
-    #append marketing variables of other categories and required lags as columns
-    temp <-
-      var_cre(
-        temp,
-        category = category,
-        category_list = category_list,
-        lag = lag,
+  if(is.null(use_params) & length(alpha) > 1){
+    par_mat <- data.frame()
+    lambdas <- list()#used by step2 function
+    z <- 1
+    for (t1 in t) {#block loop
+      print(paste("Loop", z, "has started at", format(Sys.time(), "%H:%M:%S")))
+      z <- z + 1
+      #deseasonalize data
+      temp <- plyr::ddply(
+        train_data,
+        pool,
+        deseason,
+        t1 = t1,
+        horizon = horizon,
+        sales = sales,
         time_id = time_id,
         marketing = marketing,
-        cc_marketing = cc_marketing,
-        store = store,
-        parallel = parallel
-      )
-    #extended marketing vector
-    ext_marketing <- marketing
-    for (i in marketing) {
-      for (j in 0:lag) {
-        if (j == 0)
-          next()
-        ext_marketing <- append(ext_marketing, paste0(i, "_lag", j))
-      }
-    }
-    for (i in cc_marketing) {
-      for (j in category_list) {
-        ext_marketing <- append(ext_marketing, paste0(j, "_" , i))
-      }
-    }
-
-    #do step 2 for all categories and get par_mat
-    par_mat <- rbind(
-      par_mat,
-      plyr::ddply(
-        temp,
-        category,
-        step2,
-        t1 = t1,
-        alpha = alpha,
-        marketing = ext_marketing,
         category = category,
-        lag = lag,
-        time_id = time_id,
-        sales = sales,
-        category_list = category_list,
-        cc_marketing = cc_marketing,
+        seasonality = seasonality,
         is_val = T,
-        .parallel = parallel
+        pool_seasonality = pool_seasonality,
+        trim_model = trim_Stage1,
+        parallel = parallel,
+        .parallel = parallel,
+        regularized_seasonality = regularized_seasonality
       )
-    )
+
+      #append marketing variables of other categories and required lags as columns
+      temp <-
+        var_cre(
+          temp,
+          category = category,
+          category_list = category_list,
+          lag = lag,
+          time_id = time_id,
+          marketing = marketing,
+          cc_marketing = cc_marketing,
+          store = store,
+          parallel = parallel
+        )
+
+      #do step 2 for all categories and get par_mat
+      par_mat <- rbind(
+        par_mat,
+        plyr::ddply(
+          temp,
+          category,
+          step2,
+          t1 = t1,
+          alpha = alpha,
+          marketing = ext_marketing,
+          category = category,
+          lag = lag,
+          time_id = time_id,
+          sales = sales,
+          category_list = category_list,
+          cc_marketing = cc_marketing,
+          is_val = T,
+          .parallel = parallel
+        )
+      )
+    }
+  }
+  else if(!is.null(use_params)){
+    par_mat_best <- use_params$CV
+  } else { # use_params is NULL and length(alpha) = 1
+    par_mat_best <- data.frame(category = category_list,
+                               alpha = alpha)
   }
 
-  best_pars <- function(my_data) {
-    my_data$alpha <- as.numeric(as.character(my_data$alpha))
-    my_data$lambda <- as.numeric(as.character(my_data$lambda))
-    parameter_ev1 <- stats::aggregate(
-      my_data$RMSE,
-      by = list(my_data$alpha, my_data$lambda),
-      FUN = "mean",
-      na.rm = TRUE,
-      drop = TRUE
-    )
-    names(parameter_ev1)[ncol(parameter_ev1)] <- "mean"
-    parameter_ev2 <- stats::aggregate(
-      my_data$RMSE,
-      by = list(my_data$alpha, my_data$lambda),
-      FUN = "sd",
-      na.rm = TRUE,
-      drop = TRUE
-    )
-    names(parameter_ev2)[ncol(parameter_ev2)] <- "sd"
-    parameter_ev <- merge(parameter_ev1, parameter_ev2)
-    colnames(parameter_ev)[1:2] <- c("alpha", "lambda")
+  temp <- plyr::dlply(
+    train_data,
+    pool,
+    deseason,
+    t1 = last_week + 1,
+    horizon = horizon,
+    sales = sales,
+    time_id = time_id,
+    marketing = marketing,
+    category = category,
+    seasonality = seasonality,
+    is_val = F,
+    pool_seasonality = pool_seasonality,
+    trim_model = trim_Stage1,
+    parallel = parallel,
+    .parallel = parallel,
+    regularized_seasonality = regularized_seasonality
+  )
+  s1_models <- extract(temp, 2)
+  temp <- extract(temp, 1)
+  temp <- do.call(rbind, temp)
 
-    #choose the parameters with least mean+SD RMSE
-    my_index <- which.min(parameter_ev$mean + parameter_ev$sd)
-    par_mat <- data.frame()
-    par_mat[1, 1] <- parameter_ev[my_index, "alpha"]
-    par_mat[1, 2] <- parameter_ev[my_index, "lambda"]
-    return(par_mat)
+  #append marketing variables of other categories and required lags as columns
+  temp <-
+    var_cre(
+      temp,
+      category = category,
+      category_list = category_list,
+      lag = lag,
+      time_id = time_id,
+      marketing = marketing,
+      cc_marketing = cc_marketing,
+      store = store,
+      parallel = parallel
+    )
+
+  if(is.null(use_params) & length(alpha) > 1){
+    best_pars <- function(my_data) {
+      my_data$alpha <- as.numeric(as.character(my_data$alpha))
+      my_data$lambda <- as.numeric(as.character(my_data$lambda))
+      parameter_ev1 <- stats::aggregate(
+        my_data$RMSE,
+        by = list(my_data$alpha, my_data$lambda),
+        FUN = "mean",
+        na.rm = TRUE,
+        drop = TRUE
+      )
+      names(parameter_ev1)[ncol(parameter_ev1)] <- "mean"
+      parameter_ev2 <- stats::aggregate(
+        my_data$RMSE,
+        by = list(my_data$alpha, my_data$lambda),
+        FUN = "sd",
+        na.rm = TRUE,
+        drop = TRUE
+      )
+      names(parameter_ev2)[ncol(parameter_ev2)] <- "sd"
+      parameter_ev <- merge(parameter_ev1, parameter_ev2)
+      colnames(parameter_ev)[1:2] <- c("alpha", "lambda")
+
+      #choose the parameters with least mean+SD RMSE
+      my_index <- which.min(parameter_ev$mean + parameter_ev$sd)
+      par_mat <- data.frame()
+      par_mat[1, 1] <- parameter_ev[my_index, "alpha"]
+      par_mat[1, 2] <- parameter_ev[my_index, "lambda"]
+      return(par_mat)
+    }
+    par_mat_best <- plyr::ddply(par_mat, category, best_pars)
+    colnames(par_mat_best) <- c("category", "alpha", "lambda")
   }
-  par_mat_best <- plyr::ddply(par_mat, category, best_pars)
-  colnames(par_mat_best) <- c("category", "alpha", "lambda")
 
   my_index <-
     match(paste0(train_data[, store], train_data[, category], train_data[, time_id]),
@@ -244,7 +283,6 @@ FAIR_train <- function(train_data,
       category,
       step2,
       t1 = last_week + 1,
-      alpha = alpha,
       marketing = ext_marketing,
       category = category,
       lag = lag,
@@ -366,7 +404,7 @@ FAIR_train <- function(train_data,
       Stage3 = s3_models,
       in_sample_bias = in_sample_bias
     ),
-    #CV = par_mat,
+    CV = par_mat_best,
     pars = pars,
     lag_data = lag_data
   ))
