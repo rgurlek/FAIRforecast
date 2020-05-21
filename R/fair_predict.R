@@ -94,8 +94,8 @@ FAIR_predict <- function(object, new_data, parallel = F) {
         predict(Stage1[[model_name]],
                 as.matrix(fastDummies::dummy_cols(my_data[, X_list],
                                                   remove_first_dummy = T,
-                                                  remove_selected_columns = T),
-                s = "lambda.1se"))
+                                                  remove_selected_columns = T)),
+                s = "lambda.1se")
       new_vars <- data.frame(new_vars[,,1])
       # First element of Y_list is sales. Colnames of new_vars is Y_list.
       # Keep sales column as the prediction instead of residual of sales.

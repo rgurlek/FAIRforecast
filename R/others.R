@@ -147,8 +147,8 @@ deseason <- function(my_data,
       predict(s1_models,
               as.matrix(fastDummies::dummy_cols(my_data[, X_list],
                                                 remove_first_dummy = T,
-                                                remove_selected_columns = T),
-              s = "lambda.1se"))
+                                                remove_selected_columns = T)),
+              s = "lambda.1se")
     new_vars <- data.frame(new_vars[,,1])
     new_vars <- log(my_data[, Y_list] + 1) - new_vars
   } else{
