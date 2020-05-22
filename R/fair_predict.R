@@ -166,7 +166,7 @@ FAIR_predict <- function(object, new_data, parallel = F) {
         ext_marketing[ext_marketing != paste0(my_category, "_", i)]
     }
 
-    my_model <- Stage2[[my_category]]
+    my_model <- Stage2[[as.character(my_category)]]
     my_data$prediction_2 <-
       as.numeric(predict(my_model, as.matrix(my_data[, ext_marketing])))
     my_data$residual_2 <-
