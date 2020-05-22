@@ -129,6 +129,10 @@ FAIR_predict <- function(object, new_data, parallel = F) {
   }
   temp <- plyr::ddply(temp, pool, deseason_new, .parallel = parallel)
 
+  # Remove seasonality variables
+  small_seasonality <- seasonality[seasonality != time_id]
+  temp <- temp[, !colnames(temp) %in% small_seasonality]
+
   #append marketing variables of other categories and required lags as columns
   temp <-
     var_cre(

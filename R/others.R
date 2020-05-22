@@ -280,7 +280,7 @@ step2 <-
               lambda = my_lambda
             )
         }
-        predictions <- as.numeric(predict(my_model, as.matrix(test[, marketing])))
+        predictions <- predict(my_model, as.matrix(test[, marketing]))
         predictions <- exp(log(test$Original_Sales + 1) - test[, sales]
                            + predictions) - 1
         sq_errors <- (test$Original_Sales - predictions) ^ 2

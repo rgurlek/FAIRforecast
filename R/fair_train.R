@@ -157,6 +157,10 @@ FAIR_train <- function(train_data,
         regularized_seasonality = regularized_seasonality
       )
 
+      # Remove seasonality variables
+      small_seasonality <- seasonality[seasonality != time_id]
+      temp <- temp[, !colnames(temp) %in% small_seasonality]
+
       #append marketing variables of other categories and required lags as columns
       temp <-
         var_cre(
@@ -221,6 +225,10 @@ FAIR_train <- function(train_data,
   s1_models <- extract(temp, 2)
   temp <- extract(temp, 1)
   temp <- do.call(rbind, temp)
+
+  # Remove seasonality variables
+  small_seasonality <- seasonality[seasonality != time_id]
+  temp <- temp[, !colnames(temp) %in% small_seasonality]
 
   #append marketing variables of other categories and required lags as columns
   temp <-
